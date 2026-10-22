@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api"; 
+ const API_URL = "https://shopspherebackend-3q9h.onrender.com/api";
 const categories = ["All", "Beauty", "Home Decor", "Electronics", "Dresses", "Jewellery", "Footwear", "Home Appliances", "Paintings", "Handbags", "Luxury"];
 let activeCategory = "All";
 let cart = [];
