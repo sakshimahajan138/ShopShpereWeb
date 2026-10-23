@@ -1,9 +1,11 @@
- const API_URL = "https://shopspherebackend-3q9h.onrender.com/api";
+const API_URL = "https://shopspherebackend-3q9h.onrender.com/api";
 const categories = ["All", "Beauty", "Home Decor", "Electronics", "Dresses", "Jewellery", "Footwear", "Home Appliances", "Paintings", "Handbags", "Luxury"];
 let activeCategory = "All";
 let cart = [];
+// NEW VARIABLES FOR WISHLIST AND USER
+let wishlist = JSON.parse(localStorage.getItem('shopsphere_wishlist')) || [];
+let currentUser = localStorage.getItem('shopsphere_user') || null;
 
-// Category Images (Myntra style)
 const catImages = {
     "All": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=150&q=80",
     "Beauty": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=150&q=80",
@@ -55,6 +57,12 @@ function init() {
     renderCategories();
     renderProducts();
     updateCartCount();
+    checkLoginStatus();
+    
+    // SHOW WELCOME POPUP ON LOAD
+    setTimeout(() => {
+        showModal('welcomeModal');
+    }, 500); // 0.5 second delay so page loads first
 }
 
 function renderCategories() {
@@ -69,7 +77,7 @@ function renderCategories() {
 
 function selectCategory(cat) {
     activeCategory = cat;
-    renderCategories(); // To update active class
+    renderCategories();
     document.getElementById('categoryTitle').innerText = cat === "All" ? "Trending Products" : cat;
     renderProducts();
 }
@@ -84,8 +92,13 @@ function renderProducts() {
         return matchCategory && matchSearch;
     });
     
-    grid.innerHTML = filtered.map(p => `
+    grid.innerHTML = filtered.map(p => {
+        // CHECK IF ITEM IS IN WISHLIST
+        const isWishlisted = wishlist.includes(p.id) ? 'active' : '';
+        
+        return `
         <div class="card">
+            <span class="wishlist-icon ${isWishlisted}" onclick="toggleWishlist(${p.id})">❤️</span>
             <img src="${p.img}" alt="${p.name}">
             <div class="card-info">
                 <h4>${p.name}</h4>
@@ -93,9 +106,85 @@ function renderProducts() {
                 <button class="add-btn" onclick="addToCart(${p.id})">Add to Cart</button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
+// --- NEW WISHLIST LOGIC ---
+function toggleWishlist(id) {
+    const index = wishlist.indexOf(id);
+    if (index > -1) {
+        wishlist.splice(index, 1); // Remove
+        showToast("Removed from Wishlist!");
+    } else {
+        wishlist.push(id); // Add
+        showToast("Added to Wishlist! ❤️");
+    }
+    localStorage.setItem('shopsphere_wishlist', JSON.stringify(wishlist));
+    renderProducts(); // Refresh grid to update heart color
+}
+
+function openWishlist() {
+    const container = document.getElementById('wishlistItems');
+    
+    if (wishlist.length === 0) {
+        container.innerHTML = "<p style='text-align:center; padding: 20px;'>Your wishlist is empty.</p>";
+    } else {
+        container.innerHTML = wishlist.map(id => {
+            const p = products.find(prod => prod.id === id);
+            return `
+            <div class="cart-item">
+                <span>${p.name} - ₹${p.price}</span>
+                <button class="remove-btn" onclick="toggleWishlist(${p.id}); openWishlist();">Remove</button>
+            </div>`;
+        }).join('');
+    }
+    showModal('wishlistModal');
+}
+
+// --- NEW LOGIN LOGIC ---
+function openAuth() {
+    if (currentUser) {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('profileInfo').style.display = 'block';
+        document.getElementById('profileName').innerText = currentUser;
+        document.getElementById('authTitle').innerText = "My Profile";
+    } else {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('profileInfo').style.display = 'none';
+        document.getElementById('authTitle').innerText = "Login / Register";
+    }
+    showModal('authModal');
+}
+
+function loginUser() {
+    const name = document.getElementById('userName').value;
+    if (name) {
+        currentUser = name;
+        localStorage.setItem('shopsphere_user', name);
+        document.getElementById('loginBtn').innerText = "👤 " + name;
+        closeModal('authModal');
+        showToast("Welcome " + name + "! 🎉");
+    } else {
+        alert("Please enter your name.");
+    }
+}
+
+function logoutUser() {
+    currentUser = null;
+    localStorage.removeItem('shopsphere_user');
+    document.getElementById('loginBtn').innerText = "👤 Login";
+    closeModal('authModal');
+    showToast("Logged out.");
+}
+
+function checkLoginStatus() {
+    if (currentUser) {
+        document.getElementById('loginBtn').innerText = "👤 " + currentUser;
+    }
+}
+
+// --- CART LOGIC ---
 function addToCart(id) {
     const p = products.find(x => x.id === id);
     const existing = cart.find(x => x.id === id);
@@ -136,12 +225,12 @@ function removeFromCart(index) {
     openCart();
 }
 
+// --- ORDER LOGIC ---
 async function placeOrder() {
     if(cart.length === 0) return alert("Bag is empty!");
     
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     
-    // 1. Save locally
     let savedOrders = JSON.parse(localStorage.getItem('shopsphere_orders')) || [];
     const newOrder = {
         id: "ORD-" + Math.floor(Math.random() * 10000),
@@ -152,7 +241,6 @@ async function placeOrder() {
     savedOrders.push(newOrder);
     localStorage.setItem('shopsphere_orders', JSON.stringify(savedOrders));
 
-    // 2. Try Backend
     const orderData = { items: cart, total: total };
     try {
         await fetch(`${API_URL}/orders`, {

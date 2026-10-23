@@ -22,12 +22,12 @@
             <span>🔍</span>
             <input type="text" id="searchInput" placeholder="Search for products..." onkeyup="renderProducts()">
         </div>
+        <!-- LOGIN BUTTON ADDED HERE -->
+        <button id="loginBtn" class="login-btn" onclick="openAuth()">👤 Login</button>
     </div>
 
     <!-- CATEGORIES (Horizontal Scroll) -->
-    <div class="category-scroll" id="categoryList">
-        <!-- JavaScript madhun yetil -->
-    </div>
+    <div class="category-scroll" id="categoryList"></div>
 
     <!-- HERO BANNER -->
     <div class="hero-banner">
@@ -49,16 +49,19 @@
     <!-- MAIN PRODUCT GRID -->
     <div class="main-content">
         <h2 id="categoryTitle">Trending Products</h2>
-        <div class="product-grid" id="productGrid">
-            <!-- JavaScript madhun yetil -->
-        </div>
+        <div class="product-grid" id="productGrid"></div>
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR (App Style) -->
+    <!-- BOTTOM NAVIGATION BAR -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="window.scrollTo(0,0)">
             <span>🏠</span>
             <p>Home</p>
+        </div>
+        <!-- WISHLIST BUTTON ADDED HERE -->
+        <div class="nav-item" onclick="openWishlist()">
+            <span>❤️</span>
+            <p>Wishlist</p>
         </div>
         <div class="nav-item" onclick="openCart()">
             <span>🛒</span>
@@ -74,6 +77,15 @@
         </div>
     </div>
 
+    <!-- WELCOME POPUP ADDED HERE -->
+    <div class="modal" id="welcomeModal">
+        <div class="modal-content welcome-content">
+            <h1>Welcome to ShopSphere 🛍️</h1>
+            <p>Discover the best fashion and lifestyle products at amazing prices.</p>
+            <button class="checkout-btn" onclick="closeModal('welcomeModal')">Start Shopping ➔</button>
+        </div>
+    </div>
+
     <!-- CART MODAL -->
     <div class="modal" id="cartModal">
         <div class="modal-content">
@@ -83,6 +95,32 @@
             <div class="cart-summary">
                 <h3>Total: ₹<span id="cartTotal">0</span></h3>
                 <button class="checkout-btn" onclick="placeOrder()">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WISHLIST MODAL ADDED HERE -->
+    <div class="modal" id="wishlistModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('wishlistModal')">&times;</span>
+            <h2>My Wishlist ❤️</h2>
+            <div id="wishlistItems" class="cart-items"></div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL ADDED HERE -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('authModal')">&times;</span>
+            <h2 id="authTitle">Login / Register</h2>
+            <div id="loginForm">
+                <input type="text" id="userName" placeholder="Enter your Name" class="auth-input">
+                <input type="email" id="userEmail" placeholder="Enter your Email" class="auth-input">
+                <button class="checkout-btn" onclick="loginUser()">Submit</button>
+            </div>
+            <div id="profileInfo" style="display:none; text-align:center;">
+                <h3>Welcome, <span id="profileName" style="color:#ff3f6c;"></span>!</h3>
+                <button class="checkout-btn" style="background:#555; margin-top:15px;" onclick="logoutUser()">Logout</button>
             </div>
         </div>
     </div>
